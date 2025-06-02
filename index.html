@@ -1,0 +1,221 @@
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Timer Lomba Debat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-600 min-h-screen flex flex-col items-center justify-center p-6">
+  <div class="bg-white bg-opacity-90 backdrop-blur-md rounded-3xl shadow-2xl max-w-md w-full p-8">
+    <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-6 tracking-wide">
+      Timer Lomba Debat
+    </h1>
+
+    <form id="timerForm" class="space-y-6">
+      <div>
+        <label for="minutes" class="block text-indigo-800 font-semibold mb-2">
+          Menit
+        </label>
+        <input
+          type="number"
+          id="minutes"
+          min="0"
+          max="59"
+          value="5"
+          class="w-full rounded-lg border border-indigo-300 px-4 py-2 text-indigo-900 font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          required
+        />
+      </div>
+      <div>
+        <label for="seconds" class="block text-indigo-800 font-semibold mb-2">
+          Detik
+        </label>
+        <input
+          type="number"
+          id="seconds"
+          min="0"
+          max="59"
+          value="0"
+          class="w-full rounded-lg border border-indigo-300 px-4 py-2 text-indigo-900 font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          required
+        />
+      </div>
+      <button
+        type="submit"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg transition duration-300 flex items-center justify-center gap-3"
+      >
+        <i class="fas fa-play"></i> Mulai Timer
+      </button>
+    </form>
+
+    <div
+      id="timerDisplay"
+      class="mt-10 text-center text-indigo-900 font-extrabold text-7xl select-none"
+    >
+      00:00
+    </div>
+
+    <div class="mt-8 flex justify-center gap-6">
+      <button
+        id="pauseBtn"
+        disabled
+        class="bg-yellow-400 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-md flex items-center gap-2 transition duration-300"
+      >
+        <i class="fas fa-pause"></i> Pause
+      </button>
+      <button
+        id="resumeBtn"
+        disabled
+        class="bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-md flex items-center gap-2 transition duration-300"
+      >
+        <i class="fas fa-play"></i> Resume
+      </button>
+      <button
+        id="resetBtn"
+        disabled
+        class="bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-lg shadow-md flex items-center gap-2 transition duration-300"
+      >
+        <i class="fas fa-redo"></i> Reset
+      </button>
+    </div>
+  </div>
+
+  <footer class="mt-12 text-white text-center text-sm font-light select-none">
+    &copy; 2024 Timer Lomba Debat - dibuat dengan Tailwind CSS & Font Awesome
+  </footer>
+
+  <script>
+    const timerForm = document.getElementById('timerForm');
+    const minutesInput = document.getElementById('minutes');
+    const secondsInput = document.getElementById('seconds');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let timerInterval = null;
+    let isPaused = false;
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60)
+        .toString()
+        .padStart(2, '0');
+      const s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function updateDisplay(seconds) {
+      timerDisplay.textContent = formatTime(seconds);
+      if (seconds <= 10 && seconds > 0) {
+        timerDisplay.classList.add('text-red-600', 'animate-pulse');
+      } else {
+        timerDisplay.classList.remove('text-red-600', 'animate-pulse');
+      }
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      isPaused = false;
+      pauseBtn.disabled = false;
+      resumeBtn.disabled = true;
+      resetBtn.disabled = false;
+      minutesInput.disabled = true;
+      secondsInput.disabled = true;
+
+      timerInterval = setInterval(() => {
+        if (!isPaused) {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateDisplay(remainingSeconds);
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            pauseBtn.disabled = true;
+            resumeBtn.disabled = true;
+            resetBtn.disabled = false;
+            minutesInput.disabled = false;
+            secondsInput.disabled = false;
+            timerDisplay.classList.remove('animate-pulse');
+            timerDisplay.classList.add('text-green-600');
+            timerDisplay.textContent = 'WAKTU HABIS!';
+            new Audio('https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg').play();
+          }
+        }
+      }, 1000);
+    }
+
+    timerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const m = parseInt(minutesInput.value, 10);
+      const s = parseInt(secondsInput.value, 10);
+      if (
+        isNaN(m) ||
+        isNaN(s) ||
+        m < 0 ||
+        s < 0 ||
+        m > 59 ||
+        s > 59 ||
+        (m === 0 && s === 0)
+      ) {
+        alert('Masukkan waktu yang valid (0-59 menit dan 0-59 detik, tidak boleh 0 semua).');
+        return;
+      }
+      totalSeconds = m * 60 + s;
+      remainingSeconds = totalSeconds;
+      updateDisplay(remainingSeconds);
+      timerDisplay.classList.remove('text-green-600');
+      startTimer();
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      if (timerInterval && !isPaused) {
+        isPaused = true;
+        pauseBtn.disabled = true;
+        resumeBtn.disabled = false;
+      }
+    });
+
+    resumeBtn.addEventListener('click', () => {
+      if (timerInterval && isPaused) {
+        isPaused = false;
+        pauseBtn.disabled = false;
+        resumeBtn.disabled = true;
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      remainingSeconds = totalSeconds;
+      updateDisplay(remainingSeconds);
+      isPaused = false;
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = true;
+      resetBtn.disabled = true;
+      minutesInput.disabled = false;
+      secondsInput.disabled = false;
+      timerDisplay.classList.remove('text-red-600', 'animate-pulse', 'text-green-600');
+    });
+
+    // Initialize display
+    updateDisplay(0);
+  </script>
+</body>
+</html>
